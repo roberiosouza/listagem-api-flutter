@@ -16,6 +16,7 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   var _urlBase = "https://jsonplaceholder.typicode.com";
   var _urlPost = "/posts";
+  var _paramId = "/1";
 
   Future<List<Post>> _getPosts() async {
     http.Response response = await http.get(Uri.parse(_urlBase + _urlPost));
@@ -23,27 +24,93 @@ class _HomeState extends State<Home> {
     List<Post> _listaPost = [];
 
     for (var post in dadosJson) {
-      Post p = Post(post["id"], post["userId"], post["title"], post["body"]);
+      Post p =
+          Post(post["userId"], post["title"], post["body"], id: post["id"]);
       _listaPost.add(p);
     }
     return _listaPost;
   }
 
-  Future _post() async {
-    var corpo = json.encode({
-      "title": "Título",
-      "body": "Corpo",
-      "userId": 1,
-    });
+  _post() async {
+    Post post = Post(1, "Título", "Corpo");
+    var corpo = json.encode(post.toJson());
 
     http.Response response = await http.post(Uri.parse(_urlBase + _urlPost),
         headers: {
           'Content-type': 'application/json; charset=UTF-8',
         },
         body: corpo);
+    if (response.statusCode == 201) {
+      showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text("Salvo"),
+              content: Text("Salvo como sucesso"),
+              actions: [
+                ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: Text("Fechar"))
+              ],
+            );
+          });
+    }
+  }
 
-    print("resposta: " + response.statusCode.toString());
-    print("resposta: " + response.body);
+  _put() async {
+    Post post = Post(1, "Título", "Corpo", id: 1);
+    var corpo = json.encode(post.toJson());
+
+    http.Response response =
+        await http.put(Uri.parse(_urlBase + _urlPost + _paramId),
+            headers: {
+              'Content-type': 'application/json; charset=UTF-8',
+            },
+            body: corpo);
+
+    if (response.statusCode == 200) {
+      showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text("Atualizado"),
+              content: Text("Atualizado como sucesso"),
+              actions: [
+                ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: Text("Fechar"))
+              ],
+            );
+          });
+    }
+  }
+
+  _remover() async {
+    http.Response response = await http.delete(
+      Uri.parse(_urlBase + _urlPost + _paramId),
+    );
+
+    if (response.statusCode == 200) {
+      showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text("Removido"),
+              content: Text("Removido como sucesso"),
+              actions: [
+                ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: Text("Fechar"))
+              ],
+            );
+          });
+    }
   }
 
   @override
@@ -57,13 +124,32 @@ class _HomeState extends State<Home> {
           padding: EdgeInsets.all(18),
           child: Column(
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ElevatedButton(onPressed: _post, child: Text("Salvar")),
-                  ElevatedButton(onPressed: () {}, child: Text("Atualizar")),
-                  ElevatedButton(onPressed: () {}, child: Text("Remover"))
-                ],
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(right: 12),
+                      child: ElevatedButton.icon(
+                        icon: const Icon(Icons.save),
+                        onPressed: _post,
+                        label: Text("Salvar"),
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(right: 12),
+                      child: ElevatedButton.icon(
+                          icon: const Icon(Icons.update),
+                          onPressed: _put,
+                          label: Text("Atualizar")),
+                    ),
+                    ElevatedButton.icon(
+                        icon: const Icon(Icons.delete),
+                        onPressed: _remover,
+                        label: Text("Remover"))
+                  ],
+                ),
               ),
               Expanded(
                 child: FutureBuilder<List<Post>>(

@@ -1,32 +1,16 @@
 class Post {
-  int _id;
-  int _userId;
-  String _title;
-  String _body;
+  int? id;
+  int userId;
+  String title;
+  String body;
 
-  Post(this._id, this._userId, this._title, this._body);
+  Post(this.userId, this.title, this.body, {this.id});
 
-  String get body => _body;
-
-  set body(String value) {
-    _body = value;
-  }
-
-  String get title => _title;
-
-  set title(String value) {
-    _title = value;
-  }
-
-  int get userId => _userId;
-
-  set userId(int value) {
-    _userId = value;
-  }
-
-  int get id => _id;
-
-  set id(int value) {
-    _id = value;
+  Map toJson() {
+    return {
+      "title": this.title,
+      "body": this.body,
+      "userId": this.userId,
+    };
   }
 }
